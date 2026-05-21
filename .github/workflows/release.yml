@@ -41,6 +41,8 @@ jobs:
       - name: Package App into ZIP
         run: |
           cd ASRApp.xcarchive/Products/Applications
+          # Принудительная Ad-Hoc подпись для устранения ошибки Gatekeeper о повреждении (damaged)
+          codesign --force --deep --sign - ASRApp.app
           zip -r ../../../ASRApp.zip ASRApp.app
 
       - name: Generate Release Notes and Create Release
