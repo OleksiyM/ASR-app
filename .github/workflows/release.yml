@@ -41,7 +41,7 @@ jobs:
       - name: Package App into ZIP
         run: |
           cd ASRApp.xcarchive/Products/Applications
-          zip -r ../../../../ASRApp.zip ASRApp.app
+          zip -r ../../../ASRApp.zip ASRApp.app
 
       - name: Generate Release Notes and Create Release
         env:
