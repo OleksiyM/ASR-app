@@ -24,5 +24,7 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Приложению требуется доступ к микрофону для записи вашего голоса и его распознавания в текст.</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 </dict>
 </plist>
