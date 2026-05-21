@@ -1,3 +1,6 @@
+# Local docs
+.docs/
+
 # XcodeGen (проект генерируется динамически из project.yml)
 ASRApp.xcodeproj/
 

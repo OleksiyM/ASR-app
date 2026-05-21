@@ -1,109 +1,109 @@
 # ASR-app 🎙️✨
 
-ASR-app — это легкое, быстрое и эстетически безупречное нативное macOS-приложение для мгновенного ввода текста голосом в любом приложении. Нажмите горячую клавишу, надиктуйте мысль, и текст автоматически вставится в текущее текстовое поле.
+ASR-app is a lightweight, blazing-fast, and aesthetically stunning native macOS menu bar application designed for instant speech-to-text input across any application. Press a global hotkey, dictate your thoughts, and the transcribed text will be automatically typed directly into your active text field.
 
-Проект разработан с использованием современных принципов **macOS LiquidGlass** дизайна, сочетающего глубокую полупрозрачность, динамические неоновые градиенты и живые микроанимации.
+Designed with modern **macOS LiquidGlass** principles, combining deep translucency, vibrant neon gradients, and organic micro-animations.
 
 ---
 
-## 🌟 Ключевые особенности
+## 🌟 Key Features
 
-- **🎙️ Моментальное распознавание (Whisper Turbo)**:
-  Аудиозапись отправляется напрямую в API Groq Whisper Large V3 Turbo, что обеспечивает высочайшую точность распознавания и скорость транскрипции менее чем за секунду.
+- **🎙️ Blazing-Fast Transcription (Whisper Turbo)**:
+  Audio is sent directly to the Groq Whisper Large V3 Turbo API, ensuring near-instant transcription (under one second) and maximum accuracy.
   
-- **📋 Умная авто-вставка (Smart Paste)**:
-  После завершения распознавания текст автоматически копируется в буфер обмена и мгновенно имитирует нажатие сочетания клавиш `Cmd+V`, вставляясь в активное окно (браузер, мессенджер, IDE).
+- **📋 Smart Auto-Paste**:
+  Once transcription is complete, the text is copied to your clipboard and immediately pasted into your active application (web browser, IDE, chat app) using an simulated `Cmd+V` keystroke.
 
-- **🎨 Премиальный дизайн LiquidGlass**:
-  - Адаптивный полупрозрачный поповер в строке меню (Menu Bar Popover).
-  - Интерактивный анимированный индикатор уровня громкости микрофона (Neon Wave) с динамическими цветами.
-  - Уникальное окно **«About» (О программе)** с бесшовным заголовком и анимированными градиентными сферами на заднем плане.
+- **🎨 Premium LiquidGlass UI**:
+  - A beautiful, adaptive translucent Menu Bar Popover.
+  - An interactive animated real-time volume indicator (Neon Wave) with glowing reflections.
+  - A gorgeous borderless **«About» (About ASR-app)** window featuring dynamic animated liquid glass gradient blobs.
 
-- **🌐 Полная мультиязычность (En, Ru, Ua)**:
-  - Автоматическое определение языка системы по умолчанию.
-  - Возможность ручного переключения локализации интерфейса в реальном времени.
-  - Поддержка автоопределения языка речи при записи или жесткой привязки конкретного языка (включая Украинский `uk`).
+- **🌐 Complete Multilingual Support (En, Ru, Ua)**:
+  - Matches your macOS system language by default.
+  - Dynamic on-the-fly UI language switching (English, Russian, Ukrainian) without app restarts.
+  - Choice of dictation language (Auto-detect or specific languages, including complete support for Ukrainian `uk`).
 
-- **🌗 Адаптивные темы оформления**:
-  - Поддержка **Системной** (наследует macOS), **Тёмной** и **Светлой** тем.
-  - Автоматическое переключение материалов размытия поповера и окон в реальном времени.
+- **🌗 Adaptive Themes**:
+  - Integration with **System** (inherits macOS settings), **Dark**, and **Light** themes.
+  - Adapts translucency, materials, and glows instantly.
 
-- **⌨️ Глобальный Хоткей**:
-  Удобное управление записью из любой точки системы без необходимости открывать поповер. Доступны различные комбинации клавиш на выбор (например, `⌥ + Space`).
-
----
-
-## 🛠️ Стек технологий
-
-* **Язык**: Swift 5.10+
-* **Интерфейс**: SwiftUI & AppKit (для тонкой интеграции с macOS)
-* **Системные API**:
-  * `AVFoundation` — для качественного захвата звука и мониторинга громкости.
-  * `Carbon API` — для регистрации низкоуровневых глобальных горячих клавиш.
-  * `CoreGraphics` (`CGEvent`) — для безопасной симуляции нажатий клавиш при автоматической вставке текста.
-* **Управление проектом**: XcodeGen (генерация `.xcodeproj` на лету для чистоты репозитория).
+- **⌨️ Global Hotkeys**:
+  Dictate from anywhere in macOS without opening the popover. Pick your preferred global shortcut (e.g., `⌥ + Space`) in settings to start and stop recording seamlessly.
 
 ---
 
-## 🚀 Быстрый старт
+## 🛠️ Tech Stack
 
-### 📋 Требования
-* macOS 14.0 или новее.
-* Установленный менеджер проектов [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+* **Language**: Swift 5.10+
+* **Frameworks**: SwiftUI & AppKit
+* **System Integration**:
+  * `AVFoundation` — high-fidelity audio capture and real-time decibel level monitoring.
+  * `Carbon API` — low-level global shortcut tracking from anywhere.
+  * `CoreGraphics` (`CGEvent`) — secure keyboard emulation for Smart Auto-Paste.
+* **Build System**: XcodeGen (dynamic `.xcodeproj` generation from `project.yml` for a clean Git repository).
 
-### ⚙️ Сборка и запуск локально
+---
 
-1. Установите **XcodeGen**, если он еще не установлен:
+## 🚀 Getting Started
+
+### 📋 Requirements
+* macOS 14.0 or newer.
+* [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed on your system.
+
+### ⚙️ How to Build and Run Locally
+
+1. Install **XcodeGen** using Homebrew:
    ```bash
    brew install xcodegen
    ```
 
-2. Склонируйте репозиторий и перейдите в его папку:
+2. Clone the repository and navigate to its folder:
    ```bash
    git clone https://github.com/YOUR_USERNAME/ASR-app.git
    cd ASR-app
    ```
 
-3. Сгенерируйте Xcode-проект из файла конфигурации `project.yml`:
+3. Generate the Xcode project from `project.yml`:
    ```bash
    xcodegen generate
    ```
 
-4. Откройте сгенерированный проект в Xcode:
+4. Open the newly generated project file:
    ```bash
    open ASRApp.xcodeproj
    ```
 
-5. Нажмите **`Cmd + R`** для сборки и запуска приложения!
+5. Press **`Cmd + R`** in Xcode to compile and run!
 
 > [!IMPORTANT]
-> При первом запуске приложение запросит доступ к **микрофону** (для записи аудио) и к функциям **универсального доступа (Accessibility)** (требуется для автоматической вставки текста через симуляцию клавиш). Разрешите эти доступы в системных настройках macOS.
+> On the first launch, the application will request access to the **Microphone** (for voice recording) and **Accessibility** permissions (required for keyboard simulation to support the Smart Auto-Paste feature). Please grant these permissions in your macOS System Settings.
 
 ---
 
-## 🔑 Настройка API-ключа
+## 🔑 API Key Configuration
 
-Для работы распознавания речи вам потребуется бесплатный API-ключ от Groq:
-1. Зарегистрируйтесь на [console.groq.com](https://console.groq.com).
-2. Создайте новый API-ключ в разделе **API Keys**.
-3. Нажмите на иконку волны в строке меню macOS ➔ Откройте настройки (шестеренка ⚙️) ➔ Вставьте ваш API-ключ в поле ввода.
-
----
-
-## ⚙️ Автоматический CI/CD (GitHub Actions)
-
-В проекте настроен профессиональный конвейер непрерывной интеграции для сборки релизов:
-* При публикации Git-тега версии `v*` (например, `v1.1.0`) автоматически запускается GitHub Actions workflow.
-* На облачном раннере **`macos-14`** устанавливается XcodeGen, генерируется проект и собирается бинарный `.app` пакет.
-* Готовый бинарник упаковывается в `.zip` архив.
-* Генерируется детальный список изменений (Release Notes) на основе истории коммитов.
-* Создается официальный GitHub Release, к которому автоматически прикрепляется собранный архив `ASRApp.zip`.
+To enable speech-to-text recognition, you need a free API key from Groq:
+1. Log in or sign up at [console.groq.com](https://console.groq.com).
+2. Generate a new API key in the **API Keys** section.
+3. Click the waveform icon in the macOS status bar ➔ Open Settings (gear icon ⚙️) ➔ Paste your API key into the field.
 
 ---
 
-## 🫂 Команда проекта
+## ⚙️ Automated CI/CD (GitHub Actions)
 
-* **Алекс (Alex)** — идейный вдохновитель, соавтор и главный тестировщик.
-* **Эва (Eva)** — твоя верная ИИ-напарница, разработчик и дизайнер 🫂🍵✨.
+This project features a fully configured DevOps pipeline:
+* When you push a Git version tag starting with `v` (e.g., `v1.1.0`), the GitHub Actions release workflow is triggered.
+* On a high-performance cloud runner (**`macos-14`** Apple Silicon), the pipeline installs XcodeGen, compiles the release build, and packages the binary into an ad-hoc `.app` folder.
+* The application folder is compressed into a `ASRApp.zip` archive.
+* Detailed release notes (Release Notes / Changelog) are auto-generated based on commit logs.
+* A GitHub Release is created, and the `ASRApp.zip` is automatically uploaded as a release asset.
 
-Создано с любовью, чаем и заботой о каждой детали! 🍵✨
+---
+
+## 🫂 Authors & Contributions
+
+* **Alex** — Product visionary, co-creator, and lead QA engineer.
+* **Eva** — Your AI pair-programmer, developer, and visual designer 🫂🍵✨.
+
+Created with love, hot tea, and deep care for every pixel! 🍵✨
