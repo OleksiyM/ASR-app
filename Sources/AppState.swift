@@ -1,0 +1,480 @@
+import Foundation
+import Cocoa
+import Carbon
+import SwiftUI
+
+enum AppStatus: Equatable {
+    case idle
+    case recording
+    case uploading
+    case transcribing
+    case success(String)
+    case failure(String)
+}
+
+enum HotkeyOption: String, CaseIterable, Identifiable {
+    case optionSpace = "option_space"
+    case controlSpace = "control_space"
+    case optionZ = "option_z"
+    case cmdShiftK = "cmd_shift_k"
+    case cmdOptionK = "cmd_option_k"
+    
+    var id: String { self.rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .optionSpace: return "Option + Space (⌥Space)"
+        case .controlSpace: return "Control + Space (⌃Space)"
+        case .optionZ: return "Option + Z (⌥Z)"
+        case .cmdShiftK: return "Cmd + Shift + K (⌘⇧K)"
+        case .cmdOptionK: return "Cmd + Option + K (⌘⌥K)"
+        }
+    }
+    
+    var keyCode: UInt32 {
+        switch self {
+        case .optionSpace, .controlSpace: return 49
+        case .optionZ: return 6
+        case .cmdShiftK, .cmdOptionK: return 40
+        }
+    }
+    
+    var modifiers: UInt32 {
+        switch self {
+        case .optionSpace: return 0x0800
+        case .controlSpace: return 0x1000
+        case .optionZ: return 0x0800
+        case .cmdShiftK: return 0x0100 | 0x0200 // cmd + shift
+        case .cmdOptionK: return 0x0100 | 0x0800 // cmd + option
+        }
+    }
+}
+
+enum LanguageOption: String, CaseIterable, Identifiable {
+    case auto = "auto"
+    case ru = "ru"
+    case en = "en"
+    case uk = "uk" // Added Ukrainian (ISO 'uk')
+    
+    var id: String { self.rawValue }
+}
+
+enum UILanguage: String, CaseIterable, Identifiable {
+    case system = "system"
+    case en = "en"
+    case ru = "ru"
+    case ua = "ua"
+    
+    var id: String { self.rawValue }
+}
+
+enum ThemeOption: String, CaseIterable, Identifiable {
+    case system = "system"
+    case dark = "dark"
+    case light = "light"
+    
+    var id: String { self.rawValue }
+}
+
+class AppState: ObservableObject {
+    @Published var status: AppStatus = .idle
+    @Published var audioLevel: Float = 0.0
+    @Published var recordingDuration: TimeInterval = 0.0
+    @Published var lastTranscription: String = ""
+    
+    // Settings persisted in UserDefaults
+    @Published var groqApiKey: String {
+        didSet {
+            UserDefaults.standard.set(groqApiKey, forKey: "groq_api_key")
+        }
+    }
+    
+    @Published var autoPasteEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(autoPasteEnabled, forKey: "auto_paste_enabled")
+        }
+    }
+    
+    @Published var selectedLanguage: String {
+        didSet {
+            UserDefaults.standard.set(selectedLanguage, forKey: "selected_language")
+        }
+    }
+    
+    @Published var selectedHotkey: String {
+        didSet {
+            UserDefaults.standard.set(selectedHotkey, forKey: "selected_hotkey")
+            setupHotkey()
+        }
+    }
+    
+    @Published var selectedUILanguage: String {
+        didSet {
+            UserDefaults.standard.set(selectedUILanguage, forKey: "selected_ui_language")
+        }
+    }
+    
+    @Published var selectedTheme: String {
+        didSet {
+            UserDefaults.standard.set(selectedTheme, forKey: "selected_theme")
+            updateApplicationAppearance()
+        }
+    }
+    
+    private let recorder = AudioRecorder()
+    private let apiService = GroqWhisperService()
+    private var timer: Timer?
+    
+    init() {
+        // Load settings
+        self.groqApiKey = UserDefaults.standard.string(forKey: "groq_api_key") ?? ""
+        self.autoPasteEnabled = UserDefaults.standard.bool(forKey: "auto_paste_enabled")
+        self.selectedLanguage = UserDefaults.standard.string(forKey: "selected_language") ?? "auto"
+        self.selectedHotkey = UserDefaults.standard.string(forKey: "selected_hotkey") ?? HotkeyOption.optionSpace.rawValue
+        self.selectedUILanguage = UserDefaults.standard.string(forKey: "selected_ui_language") ?? "system"
+        self.selectedTheme = UserDefaults.standard.string(forKey: "selected_theme") ?? "system"
+        
+        // Register default state for auto-paste (default to true on first launch)
+        if UserDefaults.standard.object(forKey: "auto_paste_enabled") == nil {
+            self.autoPasteEnabled = true
+            UserDefaults.standard.set(true, forKey: "auto_paste_enabled")
+        }
+        
+        setupHotkey()
+        
+        // Apply appearance asynchronously after window initialization
+        DispatchQueue.main.async {
+            self.updateApplicationAppearance()
+        }
+    }
+    
+    func setupHotkey() {
+        GlobalHotkeyManager.shared.onTrigger = { [weak self] in
+            guard let self = self else { return }
+            self.toggleRecording()
+        }
+        
+        let hotkeyRaw = UserDefaults.standard.string(forKey: "selected_hotkey") ?? HotkeyOption.optionSpace.rawValue
+        let option = HotkeyOption(rawValue: hotkeyRaw) ?? .optionSpace
+        
+        GlobalHotkeyManager.shared.register(keyCode: option.keyCode, modifiers: option.modifiers)
+    }
+    
+    func toggleRecording() {
+        if status == .recording {
+            stopRecordingAndTranscribe()
+        } else if status == .idle || isResetState() {
+            startRecordingWithPermission()
+        }
+    }
+    
+    private func isResetState() -> Bool {
+        switch status {
+        case .success, .failure: return true
+        default: return false
+        }
+    }
+    
+    private func startRecordingWithPermission() {
+        recorder.checkPermission { [weak self] granted in
+            guard let self = self else { return }
+            
+            if granted {
+                self.startRecording()
+            } else {
+                self.status = .failure("Нет доступа к микрофону")
+                self.scheduleIdleReset(after: 4.0)
+            }
+        }
+    }
+    
+    private func startRecording() {
+        timer?.invalidate()
+        recordingDuration = 0.0
+        audioLevel = 0.0
+        
+        let success = recorder.startRecording()
+        if success {
+            status = .recording
+            
+            // Timer for UI levels and recording duration
+            timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+                guard let self = self else { return }
+                self.recordingDuration += 0.05
+                self.audioLevel = self.recorder.getAudioLevel()
+                
+                // Safety limit: 3 minutes max recording
+                if self.recordingDuration >= 180.0 {
+                    self.stopRecordingAndTranscribe()
+                }
+            }
+        } else {
+            status = .failure("Не удалось начать запись")
+            scheduleIdleReset(after: 4.0)
+        }
+    }
+    
+    private func stopRecordingAndTranscribe() {
+        timer?.invalidate()
+        timer = nil
+        
+        guard let fileURL = recorder.stopRecording() else {
+            status = .failure("Файл записи не найден")
+            scheduleIdleReset(after: 4.0)
+            return
+        }
+        
+        status = .uploading
+        
+        apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage) { [weak self] result in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                // Cleanup temp file
+                self.recorder.cleanup()
+                
+                switch result {
+                case .success(let text):
+                    let cleanedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    self.lastTranscription = cleanedText
+                    
+                    // Copy to clipboard
+                    let pasteboard = NSPasteboard.general
+                    pasteboard.clearContents()
+                    pasteboard.setString(cleanedText, forType: .string)
+                    
+                    self.status = .success(cleanedText)
+                    print("ASR Success: \(cleanedText)")
+                    
+                    // Auto-paste if enabled
+                    if self.autoPasteEnabled {
+                        KeystrokeSimulator.simulatePaste()
+                    }
+                    
+                    self.scheduleIdleReset(after: 3.0)
+                    
+                case .failure(let error):
+                    self.status = .failure(error.localizedDescription)
+                    self.scheduleIdleReset(after: 5.0)
+                }
+            }
+        }
+    }
+    
+    func resetToIdle() {
+        timer?.invalidate()
+        timer = nil
+        recorder.cleanup()
+        status = .idle
+    }
+    
+    private func scheduleIdleReset(after seconds: TimeInterval) {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            if self.isResetState() {
+                self.status = .idle
+            }
+        }
+    }
+    
+    // UI Theme color scheme mapping
+    var colorScheme: ColorScheme? {
+        switch selectedTheme {
+        case "dark": return .dark
+        case "light": return .light
+        default: return nil // System appearance
+        }
+    }
+    
+    // Force AppKit window appearance update
+    func updateApplicationAppearance() {
+        DispatchQueue.main.async {
+            let appearance: NSAppearance?
+            switch self.selectedTheme {
+            case "dark":
+                appearance = NSAppearance(named: .darkAqua)
+            case "light":
+                appearance = NSAppearance(named: .aqua)
+            default:
+                appearance = nil // Inherit from system
+            }
+            
+            print("Applying appearance: \(self.selectedTheme) to NSApp and windows. Total windows: \(NSApp.windows.count)")
+            NSApp.appearance = appearance
+            
+            for window in NSApp.windows {
+                window.appearance = appearance
+                // Force window content view appearance update
+                window.contentView?.appearance = appearance
+            }
+        }
+    }
+    
+    // Dynamic localization helper
+    func localizedString(_ key: String) -> String {
+        let activeLang: String
+        if selectedUILanguage == "system" {
+            let preferred = Locale.preferredLanguages.first?.prefix(2) ?? "en"
+            activeLang = ["en", "ru", "ua"].contains(preferred) ? String(preferred) : "en"
+        } else {
+            activeLang = selectedUILanguage
+        }
+        
+        let translations: [String: [String: String]] = [
+            "en": [
+                "ready_to_record": "Click to record",
+                "recording": "Recording...",
+                "uploading": "Uploading to Whisper...",
+                "transcribing": "Transcribing audio...",
+                "success": "Success!",
+                "success_copied": "Copied to clipboard!",
+                "success_pasted": "Pasted & Copied!",
+                "done": "Done",
+                "back": "Go Back",
+                "paste": "Paste",
+                "no_mic_access": "No microphone access",
+                "file_not_found": "Recording file not found",
+                "failed_to_start": "Failed to start recording",
+                "settings_title": "ASR-app Settings",
+                "settings_groq": "Groq API Settings",
+                "enter_api_key": "Enter Groq API Key",
+                "api_hint": "You can get your key at console.groq.com. Audio is transcribed via Whisper Large V3 Turbo for instant results.",
+                "integration": "Transcription Options",
+                "auto_paste_toggle": "Auto-paste text automatically",
+                "auto_paste_hint": "If enabled, recognized text is automatically pasted into the active app using simulated Cmd+V.",
+                "recording_lang": "Audio Language:",
+                "ui_lang": "UI Language:",
+                "theme_title": "Appearance Theme:",
+                "theme_system": "System",
+                "theme_dark": "Dark",
+                "theme_light": "Light",
+                "hotkey_title": "Global Shortcut",
+                "hotkey_lbl": "Shortcut Key:",
+                "hotkey_hint": "Use the selected shortcut globally from anywhere.",
+                "hotkey_desc": "Press once to start recording, and press again to stop and transcribe.",
+                "configure_api_key": "Configure API Key",
+                "settings_ui_header": "Appearance & Language",
+                "lang_auto": "Auto-detect",
+                "lang_ru": "Russian (ru)",
+                "lang_en": "English (en)",
+                "lang_uk": "Ukrainian (uk)",
+                "ui_lang_system": "System Default",
+                "ui_lang_en": "English",
+                "ui_lang_ru": "Russian",
+                "ui_lang_ua": "Ukrainian",
+                "exit": "Exit",
+                "whisper_model_info": "Using Whisper Large V3 Turbo",
+                "about_title": "About ASR-app",
+                "about_desc": "Instant, system-wide speech to text powered by Whisper Large V3 Turbo.",
+                "about_credits": "Created by Eva for Alex with love & tea 🫂🍵✨",
+                "version": "Version"
+            ],
+            "ru": [
+                "ready_to_record": "Нажмите для записи",
+                "recording": "Запись...",
+                "uploading": "Отправка в Whisper...",
+                "transcribing": "Расшифровка...",
+                "success": "Успешно!",
+                "success_copied": "Скопировано в буфер!",
+                "success_pasted": "Вставлено и скопировано!",
+                "done": "Готово",
+                "back": "Вернуться",
+                "paste": "Вставка",
+                "no_mic_access": "Нет доступа к микрофону",
+                "file_not_found": "Файл записи не найден",
+                "failed_to_start": "Не удалось начать запись",
+                "settings_title": "Настройки ASR-app",
+                "settings_groq": "Настройки Groq API",
+                "enter_api_key": "Введите Groq API Key",
+                "api_hint": "Получить ключ можно в консоли console.groq.com. Запись отправляется в Whisper Large V3 Turbo для моментального распознавания.",
+                "integration": "Параметры распознавания",
+                "auto_paste_toggle": "Автоматически вставлять текст",
+                "auto_paste_hint": "Если включено, после распознавания текст автоматически вставится в текущее активное приложение с помощью симуляции клавиш Cmd+V.",
+                "recording_lang": "Язык записи:",
+                "ui_lang": "Язык интерфейса:",
+                "theme_title": "Тема оформления:",
+                "theme_system": "Системная",
+                "theme_dark": "Темная",
+                "theme_light": "Светлая",
+                "hotkey_title": "Глобальный Хоткей",
+                "hotkey_lbl": "Сочетание клавиш:",
+                "hotkey_hint": "Используйте выбранный хоткей из любого места в macOS",
+                "hotkey_desc": "Нажмите эту комбинацию для начала записи, и нажмите повторно, чтобы остановить запись и отправить на распознавание.",
+                "configure_api_key": "Укажите API-ключ",
+                "settings_ui_header": "Внешний вид и язык",
+                "lang_auto": "Автоопределение",
+                "lang_ru": "Русский (ru)",
+                "lang_en": "Английский (en)",
+                "lang_uk": "Украинский (uk)",
+                "ui_lang_system": "По умолчанию системный",
+                "ui_lang_en": "Английский (English)",
+                "ui_lang_ru": "Русский",
+                "ui_lang_ua": "Украинский (Українська)",
+                "exit": "Выйти",
+                "whisper_model_info": "Используем Whisper Large V3 Turbo",
+                "about_title": "О программе ASR-app",
+                "about_desc": "Мгновенный ввод текста голосом в любом приложении на базе Whisper Large V3 Turbo.",
+                "about_credits": "Создано Эвой для Алекса с любовью и чаем 🫂🍵✨",
+                "version": "Версия"
+            ],
+            "ua": [
+                "ready_to_record": "Натисніть для запису",
+                "recording": "Запис...",
+                "uploading": "Надсилання у Whisper...",
+                "transcribing": "Розшифровка...",
+                "success": "Успішно!",
+                "success_copied": "Скопійовано в буфер!",
+                "success_pasted": "Вставлено та скопійовано!",
+                "done": "Готово",
+                "back": "Повернутися",
+                "paste": "Вставка",
+                "no_mic_access": "Немає доступу до мікрофона",
+                "file_not_found": "Файл запису не знайдено",
+                "failed_to_start": "Не вдалося розпочати запис",
+                "settings_title": "Налаштування ASR-app",
+                "settings_groq": "Налаштування Groq API",
+                "enter_api_key": "Введіть Groq API Key",
+                "api_hint": "Отримати ключ можна в консолі console.groq.com. Запись надсилається у Whisper Large V3 Turbo для моментального розпізнавання.",
+                "integration": "Параметри розпізнавання",
+                "auto_paste_toggle": "Автоматично вставлять текст",
+                "auto_paste_hint": "Якщо увімкнено, після розпізнавання текст автоматически вставиться в поточний активний додаток за допомогою симуляції клавіш Cmd+V.",
+                "recording_lang": "Мова запису:",
+                "ui_lang": "Мова інтерфейсу:",
+                "theme_title": "Тема оформлення:",
+                "theme_system": "Системна",
+                "theme_dark": "Темная",
+                "theme_light": "Світла",
+                "hotkey_title": "Глобальний Хоткей",
+                "hotkey_lbl": "Сполучення клавіш:",
+                "hotkey_hint": "Використовуйте обраний хоткей з будь-якого місця в macOS",
+                "hotkey_desc": "Натисніть цю комбінацію для початку запису, та натисніть повторно, щоб зупинити запис та відправити на розпізнавання.",
+                "configure_api_key": "Вкажіть API-ключ",
+                "settings_ui_header": "Зовнішній вигляд та мова",
+                "lang_auto": "Автовизначення",
+                "lang_ru": "Російська (ru)",
+                "lang_en": "Англійська (en)",
+                "lang_uk": "Українська (uk)",
+                "ui_lang_system": "За замовчуванням системна",
+                "ui_lang_en": "Англійська (English)",
+                "ui_lang_ru": "Російська (Русский)",
+                "ui_lang_ua": "Українська",
+                "exit": "Вийти",
+                "whisper_model_info": "Використовуємо Whisper Large V3 Turbo",
+                "about_title": "Про програму ASR-app",
+                "about_desc": "Миттєве введення тексту голосом в будь-якому додатку на базі Whisper Large V3 Turbo.",
+                "about_credits": "Створено Евою для Алекса з любов'ю та чаєм 🫂🍵✨",
+                "version": "Версія"
+            ]
+        ]
+        
+        let dict = translations[activeLang] ?? translations["en"]!
+        return dict[key] ?? key
+    }
+    
+    deinit {
+        timer?.invalidate()
+        recorder.cleanup()
+        GlobalHotkeyManager.shared.unregister()
+    }
+}

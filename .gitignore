@@ -1,0 +1,37 @@
+# XcodeGen (проект генерируется динамически из project.yml)
+ASRApp.xcodeproj/
+
+# macOS System Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.Spotlight-V100
+.Trashes
+VolumeIcon.icns
+.com.apple.timemachine.donotbackup
+
+# Xcode / Swift / Objective-C
+build/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+*.xcworkspace/
+xcuserdata/
+MostRecentWindowPosition
+*.xccheckout
+*.xcscmblueprint
+*~
+*.swp
+*.swo
+
+# Swift Package Manager (SPM)
+.build/
+.swiftpm/
+
+# Archive Products
+*.xcarchive/
+*.zip
+*.dmg
