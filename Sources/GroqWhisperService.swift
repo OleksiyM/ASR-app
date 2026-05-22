@@ -44,6 +44,11 @@ class GroqWhisperService {
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
         body.append("whisper-large-v3-turbo\r\n".data(using: .utf8)!)
         
+        // Temperature field (set to 0.0 for deterministic decoding and less hallucinations)
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"temperature\"\r\n\r\n".data(using: .utf8)!)
+        body.append("0.0\r\n".data(using: .utf8)!)
+        
         // Language field (if not auto)
         if language != "auto" && !language.isEmpty {
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
