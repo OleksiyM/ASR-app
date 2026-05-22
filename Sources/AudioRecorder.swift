@@ -35,10 +35,10 @@ class AudioRecorder: NSObject, AVAudioRecorderDelegate {
         // Compact speech recording settings optimized for ASR Whisper
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 16000.0, // Whisper works best at 16kHz
+            AVSampleRateKey: 32000.0, // High quality sampling for better AAC encoding
             AVNumberOfChannelsKey: 1,  // Mono
             AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
-            AVEncoderBitRateKey: 24000 // Very light file size
+            AVEncoderBitRateKey: 64000 // Crystal clear mono speech bit rate (saves space, removes artifacts)
         ]
         
         do {
