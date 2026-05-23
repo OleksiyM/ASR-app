@@ -4,7 +4,7 @@ struct SettingsView: View {
     @ObservedObject var appState: AppState
     
     var body: some View {
-        Form {
+        ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 // Header
                 HStack {
@@ -209,8 +209,8 @@ struct SettingsView: View {
                     .padding(.vertical, 2)
                 }
             }
-            .padding()
+            .padding(24)
         }
-        .frame(width: 480, height: 740)
+        .frame(width: 480, height: 580)
     }
 }
