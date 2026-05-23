@@ -50,7 +50,7 @@ struct AboutView: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.primary)
                     
-                    Text("\(appState.localizedString("version")) 1.1.1")
+                    Text("\(appState.localizedString("version")) 1.2.0")
                         .font(.system(size: 11, weight: .semibold, design: .monospaced))
                         .foregroundColor(.secondary)
                         .padding(.vertical, 2)
