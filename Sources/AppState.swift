@@ -182,7 +182,7 @@ class AppState: ObservableObject {
             if granted {
                 self.startRecording()
             } else {
-                self.status = .failure("Нет доступа к микрофону")
+                self.status = .failure(self.localizedString("no_mic_access"))
                 self.scheduleIdleReset(after: 4.0)
             }
         }
@@ -209,7 +209,7 @@ class AppState: ObservableObject {
                 }
             }
         } else {
-            status = .failure("Не удалось начать запись")
+            status = .failure(self.localizedString("failed_to_start"))
             scheduleIdleReset(after: 4.0)
         }
     }
@@ -219,7 +219,7 @@ class AppState: ObservableObject {
         timer = nil
         
         guard let fileURL = recorder.stopRecording() else {
-            status = .failure("Файл записи не найден")
+            status = .failure(self.localizedString("file_not_found"))
             scheduleIdleReset(after: 4.0)
             return
         }
@@ -254,7 +254,24 @@ class AppState: ObservableObject {
                     self.scheduleIdleReset(after: 3.0)
                     
                 case .failure(let error):
-                    self.status = .failure(error.localizedDescription)
+                    let errorMessage: String
+                    if let serviceError = error as? GroqWhisperService.ServiceError {
+                        switch serviceError {
+                        case .invalidURL:
+                            errorMessage = self.localizedString("error_invalid_url")
+                        case .missingAPIKey:
+                            errorMessage = self.localizedString("error_missing_api_key")
+                        case .badResponse(let code):
+                            errorMessage = String(format: self.localizedString("error_bad_response"), code)
+                        case .decodingError:
+                            errorMessage = self.localizedString("error_decoding_error")
+                        case .noData:
+                            errorMessage = self.localizedString("error_no_data")
+                        }
+                    } else {
+                        errorMessage = error.localizedDescription
+                    }
+                    self.status = .failure(errorMessage)
                     self.scheduleIdleReset(after: 5.0)
                 }
             }
@@ -368,7 +385,12 @@ class AppState: ObservableObject {
                 "about_title": "About ASR-app",
                 "about_desc": "Instant, system-wide speech to text powered by Whisper Large V3 Turbo.",
                 "about_credits": "Created by Eva for Alex with love & tea 🫂🍵✨",
-                "version": "Version"
+                "version": "Version",
+                "error_invalid_url": "Invalid API URL",
+                "error_missing_api_key": "Groq API Key is not configured",
+                "error_bad_response": "Groq server error: %d",
+                "error_decoding_error": "Failed to parse server response",
+                "error_no_data": "Server returned empty response"
             ],
             "ru": [
                 "ready_to_record": "Нажмите для записи",
@@ -416,7 +438,12 @@ class AppState: ObservableObject {
                 "about_title": "О программе ASR-app",
                 "about_desc": "Мгновенный ввод текста голосом в любом приложении на базе Whisper Large V3 Turbo.",
                 "about_credits": "Создано Эвой для Алекса с любовью и чаем 🫂🍵✨",
-                "version": "Версия"
+                "version": "Версия",
+                "error_invalid_url": "Некорректный URL API",
+                "error_missing_api_key": "API-ключ Groq не настроен",
+                "error_bad_response": "Ошибка сервера Groq: %d",
+                "error_decoding_error": "Не удалось распознать ответ сервера",
+                "error_no_data": "Сервер вернул пустой ответ"
             ],
             "ua": [
                 "ready_to_record": "Натисніть для запису",
@@ -463,8 +490,13 @@ class AppState: ObservableObject {
                 "whisper_model_info": "Використовуємо Whisper Large V3 Turbo",
                 "about_title": "Про програму ASR-app",
                 "about_desc": "Миттєве введення тексту голосом в будь-якому додатку на базі Whisper Large V3 Turbo.",
-                "about_credits": "Створено Евою для Алекса з любов'ю та чаєм 🫂🍵✨",
-                "version": "Версія"
+                "about_credits": "Створено Евою для Алекса з любов'ю та чаем 🫂🍵✨",
+                "version": "Версія",
+                "error_invalid_url": "Некоректний URL API",
+                "error_missing_api_key": "API-ключ Groq не налаштований",
+                "error_bad_response": "Помилка сервера Groq: %d",
+                "error_decoding_error": "Не вдалося розпізнати відповідь сервера",
+                "error_no_data": "Сервер повернув порожню відповідь"
             ]
         ]
         
