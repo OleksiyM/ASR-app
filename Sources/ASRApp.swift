@@ -59,7 +59,7 @@ struct ASRApp: App {
         let hostingController = NSHostingController(rootView: view)
         
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 680),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 740),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false

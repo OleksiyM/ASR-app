@@ -30,6 +30,7 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 Divider()
@@ -77,6 +78,7 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
                     
                     VStack(alignment: .leading, spacing: 6) {
                         Text(appState.localizedString("custom_vocab_title"))
@@ -95,6 +97,7 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.top, 4)
                 }
@@ -136,6 +139,7 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 Divider()
@@ -176,6 +180,6 @@ struct SettingsView: View {
             }
             .padding()
         }
-        .frame(width: 480, height: 680)
+        .frame(width: 480, height: 740)
     }
 }

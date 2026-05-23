@@ -185,6 +185,7 @@ struct MainPopoverView: View {
     
     private var recordingStateView: some View {
         let isWarning = appState.maxRecordingDuration - appState.recordingDuration <= 30.0
+        let secondsLeft = Int(Darwin.round(appState.maxRecordingDuration - appState.recordingDuration))
         
         return VStack(spacing: 12) {
             Spacer()
@@ -207,15 +208,12 @@ struct MainPopoverView: View {
                 Text(formatTime(appState.recordingDuration))
                     .font(.system(size: 16, weight: .bold, design: .monospaced))
                     .foregroundColor(isWarning ? .orange : .primary)
-            }
-            
-            if isWarning {
-                let secondsLeft = Int(Darwin.round(appState.maxRecordingDuration - appState.recordingDuration))
-                if secondsLeft > 0 {
-                    Text(String(format: appState.localizedString("warning_auto_stop"), secondsLeft))
-                        .font(.system(size: 10, weight: .bold))
+                
+                // Countdown text integrated in the same line to preserve vertical space
+                if isWarning && secondsLeft > 0 {
+                    Text("(-\(secondsLeft)s)")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.orange)
-                        .padding(.vertical, -4)
                         .transition(.opacity)
                 }
             }
