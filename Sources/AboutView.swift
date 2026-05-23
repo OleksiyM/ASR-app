@@ -50,7 +50,7 @@ struct AboutView: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.primary)
                     
-                    Text("\(appState.localizedString("version")) 1.2.5")
+                    Text("\(appState.localizedString("version")) \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.5")")
                         .font(.system(size: 11, weight: .semibold, design: .monospaced))
                         .foregroundColor(.secondary)
                         .padding(.vertical, 2)
@@ -98,8 +98,51 @@ struct AboutView: View {
                     .padding(.horizontal, 24)
                     .fixedSize(horizontal: false, vertical: true)
                 
+                // GitHub and X (Twitter) Quick Links
+                HStack(spacing: 16) {
+                    Button {
+                        if let url = URL(string: "https://github.com/OleksiyM/ASR-app") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.right.circle.fill")
+                                .font(.system(size: 11))
+                            Text("GitHub")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundColor(.purple)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 10)
+                        .background(Color.purple.opacity(0.08))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button {
+                        if let url = URL(string: "https://x.com/oleksiyML") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.up.right.circle.fill")
+                                .font(.system(size: 11))
+                            Text("X (Twitter)")
+                                .font(.system(size: 11, weight: .bold))
+                        }
+                        .foregroundColor(.pink)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 10)
+                        .background(Color.pink.opacity(0.08))
+                        .cornerRadius(8)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 4)
+                
                 Divider()
                     .padding(.horizontal, 40)
+                    .padding(.top, 4)
                 
                 // Warm Credits (Eva & Alex)
                 VStack(spacing: 6) {

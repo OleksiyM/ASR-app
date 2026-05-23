@@ -138,3 +138,17 @@ This project features a fully automated DevOps pipeline:
 * **Eva** — Your AI pair-programmer, developer, and visual designer 🫂🍵✨.
 
 Created with love, hot tea, and deep care for every pixel! 🍵✨
+
+---
+
+## 🔮 Future Ideas & Roadmap
+
+Here are some exciting ideas for future releases of ASR-app:
+
+- [x] **🔗 Interactive Links in About**: Added dynamic links to GitHub and X (Twitter) in the About window for quick navigation.
+- [ ] **🚀 Launch at Login**: Add a setting to automatically start ASR-app when macOS boots up.
+- [ ] **📚 Transcription History Log**: A quick-access history panel in the popover to see, search, and copy past transcriptions.
+- [ ] **🧠 Local Offline Transcription (CoreML/whisper.cpp)**: Allow completely offline speech-to-text processing for maximum privacy when internet is unavailable.
+- [ ] **✨ AI Smart Rewrite (LLM Integration)**: Add quick LLM actions to improve grammar, summarize, translate, or rewrite the transcribed text in professional/friendly tones before pasting.
+- [ ] **🔄 Multi-language Real-time Translation**: Instantly translate dictated speech into a target language before auto-pasting.
+
