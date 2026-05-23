@@ -127,6 +127,12 @@ class AppState: ObservableObject {
         }
     }
     
+    @Published var customVocabulary: String {
+        didSet {
+            UserDefaults.standard.set(customVocabulary, forKey: "custom_vocabulary")
+        }
+    }
+    
     private let recorder = AudioRecorder()
     private let apiService = GroqWhisperService()
     private var timer: Timer?
@@ -139,6 +145,8 @@ class AppState: ObservableObject {
         self.selectedHotkey = UserDefaults.standard.string(forKey: "selected_hotkey") ?? HotkeyOption.optionSpace.rawValue
         self.selectedUILanguage = UserDefaults.standard.string(forKey: "selected_ui_language") ?? "system"
         self.selectedTheme = UserDefaults.standard.string(forKey: "selected_theme") ?? "system"
+        
+        self.customVocabulary = UserDefaults.standard.string(forKey: "custom_vocabulary") ?? ""
         
         self.maxRecordingDuration = UserDefaults.standard.double(forKey: "max_recording_duration")
         if self.maxRecordingDuration == 0.0 {
@@ -238,7 +246,14 @@ class AppState: ObservableObject {
         
         status = .uploading
         
-        apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage) { [weak self] result in
+        let baseStylePrompt = "Hello! This is a dynamic, high-quality transcription with perfect punctuation: commas, periods, dashes, and question marks. OK? Привет! Это качественная запись с идеальной пунктуацией."
+        var finalPrompt = baseStylePrompt
+        let cleanVocab = customVocabulary.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !cleanVocab.isEmpty {
+            finalPrompt += " Terms: " + cleanVocab
+        }
+        
+        apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage, prompt: finalPrompt) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
@@ -409,7 +424,9 @@ class AppState: ObservableObject {
                 "duration_3min": "3 minutes (Default)",
                 "duration_5min": "5 minutes",
                 "duration_10min": "10 minutes",
-                "warning_auto_stop": "Auto-stop in %d sec"
+                "warning_auto_stop": "Auto-stop in %d sec",
+                "custom_vocab_title": "Custom Vocabulary (Terms & Names):",
+                "custom_vocab_hint": "Enter custom terms or names separated by commas (up to 30-50 words). Model will use them to recognize complex words."
             ],
             "ru": [
                 "ready_to_record": "Нажмите для записи",
@@ -469,7 +486,9 @@ class AppState: ObservableObject {
                 "duration_3min": "3 минуты (По умолчанию)",
                 "duration_5min": "5 минут",
                 "duration_10min": "10 минут",
-                "warning_auto_stop": "Автостоп через %d сек"
+                "warning_auto_stop": "Автостоп через %d сек",
+                "custom_vocab_title": "Пользовательский словарь (термины и имена):",
+                "custom_vocab_hint": "Введите через запятую специфические термины или имена (не более 30-50 слов). Модель будет использовать их для распознавания сложных слов."
             ],
             "ua": [
                 "ready_to_record": "Натисніть для запису",
@@ -529,7 +548,9 @@ class AppState: ObservableObject {
                 "duration_3min": "3 хвилини (Типово)",
                 "duration_5min": "5 хвилин",
                 "duration_10min": "10 хвилин",
-                "warning_auto_stop": "Автостоп через %d сек"
+                "warning_auto_stop": "Автостоп через %d сек",
+                "custom_vocab_title": "Словник користувача (терміни та імена):",
+                "custom_vocab_hint": "Введіть через кому специфічні терміни або імена (не більше 30-50 слів). Модель використовуватиме їх для розпізнавання складних слів."
             ]
         ]
         

@@ -77,6 +77,26 @@ struct SettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .lineSpacing(4)
+                    
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(appState.localizedString("custom_vocab_title"))
+                            .fontWeight(.medium)
+                        
+                        TextEditor(text: $appState.customVocabulary)
+                            .font(.system(size: 11, design: .monospaced))
+                            .frame(height: 50)
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                            )
+                        
+                        Text(appState.localizedString("custom_vocab_hint"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineSpacing(3)
+                    }
+                    .padding(.top, 4)
                 }
                 
                 Divider()
