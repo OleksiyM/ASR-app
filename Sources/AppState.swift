@@ -611,7 +611,11 @@ class AppState: ObservableObject {
             return
         }
         
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 10.0
+        
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 self.isCheckingForUpdates = false
