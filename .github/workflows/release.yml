@@ -13,16 +13,20 @@ jobs:
     runs-on: macos-15
     permissions:
       contents: write
+    strategy:
+      matrix:
+        arch: [arm64, x86_64]
+      fail-fast: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Требуется для получения истории коммитов и предыдущих тегов
 
-      - name: Install XcodeGen
+      - name: Install Tools
         run: |
           brew update-reset
-          brew install xcodegen
+          brew install xcodegen create-dmg
 
       - name: Generate Xcode Project
         run: xcodegen generate
@@ -34,16 +38,45 @@ jobs:
                      -configuration Release \
                      -archivePath ASRApp.xcarchive \
                      archive \
+                     ARCHS="${{ matrix.arch }}" \
+                     ONLY_ACTIVE_ARCH=NO \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGN_IDENTITY=""
 
-      - name: Package App into ZIP
+      - name: Package App into ZIP and DMG
         run: |
           cd ASRApp.xcarchive/Products/Applications
           # Принудительная Ad-Hoc подпись для устранения ошибки Gatekeeper о повреждении (damaged)
           codesign --force --deep --sign - ASRApp.app
-          zip -r ../../../ASRApp.zip ASRApp.app
+          
+          # Определяем семантическое имя архитектуры
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            ARCH_NAME="AppleSilicon"
+          else
+            ARCH_NAME="Intel"
+          fi
+          
+          # 1. Создаем ZIP архив
+          zip -r ../../../ASR-App-${ARCH_NAME}.zip ASRApp.app
+          cd ../../..
+          
+          # 2. Создаем временную структуру для сборки DMG
+          mkdir -p dmg_temp
+          cp -R ASRApp.xcarchive/Products/Applications/ASRApp.app dmg_temp/
+          
+          # 3. Собираем премиальный DMG с кастомным фоном и разметкой Finder
+          create-dmg \
+            --volname "ASRApp" \
+            --background "Sources/dmg_background.png" \
+            --window-size 540 360 \
+            --icon-size 96 \
+            --icon "ASRApp.app" 130 180 \
+            --app-drop-link 410 180 \
+            "ASR-App-${ARCH_NAME}.dmg" \
+            "dmg_temp/"
+          
+          rm -rf dmg_temp
 
       - name: Generate Release Notes and Create Release
         env:
@@ -63,5 +96,14 @@ jobs:
             echo "https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ github.ref_name }}" >> release_notes.md
           fi
           
-          # Создание релиза с помощью встроенной утилиты GitHub CLI (gh) и загрузка архива
-          gh release create ${{ github.ref_name }} ASRApp.zip --title "Release ${{ github.ref_name }}" --notes-file release_notes.md
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            ARCH_NAME="AppleSilicon"
+          else
+            ARCH_NAME="Intel"
+          fi
+          
+          # Создаем релиз, если он еще не существует (|| true защищает от рассинхронизации параллельных джобов)
+          gh release create ${{ github.ref_name }} --title "Release ${{ github.ref_name }}" --notes-file release_notes.md || true
+          
+          # Загружаем файлы текущей архитектуры в созданный релиз
+          gh release upload ${{ github.ref_name }} ASR-App-${ARCH_NAME}.zip ASR-App-${ARCH_NAME}.dmg --clobber
