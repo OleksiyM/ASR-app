@@ -7,8 +7,8 @@
     "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.6/ASR-App-Intel.dmg"
   },
   "releaseNotes": {
-    "en": "Added direct interactive links to GitHub and X (Twitter) in the About window. App version inside About is now resolved dynamically.",
-    "ru": "Добавлены прямые интерактивные ссылки на GitHub и X (Twitter) в окне «О программе». Версия приложения теперь отображается динамически.",
-    "uk": "Додано прямі інтерактивні посилання на GitHub та X (Twitter) у вікні «Про програму». Версія додатка тепер відображається динамічно."
+    "en": "Added model temperature selection in Settings, upgraded style prompt to a natural bilingual narrative, and added social links in About window.",
+    "ru": "Добавлен выбор температуры модели в настройках, промпт стиля обновлен на естественный двуязычный рассказ, добавлены ссылки на GitHub/X в окне «О программе».",
+    "uk": "Додано вибір температури моделі в налаштуваннях, промпт стилю оновлено на природну двомовну розповідь, додано посилання на GitHub/X у вікні «Про програму»."
   }
 }
