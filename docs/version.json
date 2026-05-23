@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.2.4",
-  "build": 2,
+  "latestVersion": "1.2.5",
+  "build": 3,
   "requiredOS": "14.0",
   "urls": {
-    "arm64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.4/ASR-App-AppleSilicon.dmg",
-    "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.4/ASR-App-Intel.dmg"
+    "arm64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.5/ASR-App-AppleSilicon.dmg",
+    "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.5/ASR-App-Intel.dmg"
   },
   "releaseNotes": {
-    "en": "Integrated background auto-update engine and beautifully designed LiquidGlass landing page on GitHub Pages.",
-    "ru": "Внедрена автоматическая фоновая проверка обновлений и стильный LiquidGlass лендинг на GitHub Pages.",
-    "uk": "Впроваджено автоматичну фонову перевірку оновлень та стильний LiquidGlass лендінг на GitHub Pages."
+    "en": "Added periodic 24-hour background update checks and interactive update button inside the About window.",
+    "ru": "Добавлена периодическая проверка обновлений каждые 24 часа и кнопка проверки в окне «О программе».",
+    "uk": "Додано періодичну перевірку оновлень кожні 24 години та кнопку перевірки у вікні «Про програму»."
   }
 }

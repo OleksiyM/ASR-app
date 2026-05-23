@@ -143,6 +143,7 @@ class AppState: ObservableObject {
     private let recorder = AudioRecorder()
     private let apiService = GroqWhisperService()
     private var timer: Timer?
+    private var updateTimer: Timer?
     
     init() {
         // Load settings
@@ -176,6 +177,11 @@ class AppState: ObservableObject {
         
         // Trigger background update check
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.checkForUpdates(explicit: false)
+        }
+        
+        // Set up daily background update check timer (every 24 hours = 86400 seconds)
+        self.updateTimer = Timer.scheduledTimer(withTimeInterval: 86400, repeats: true) { [weak self] _ in
             self?.checkForUpdates(explicit: false)
         }
     }
@@ -682,6 +688,7 @@ class AppState: ObservableObject {
     
     deinit {
         timer?.invalidate()
+        updateTimer?.invalidate()
         recorder.cleanup()
         GlobalHotkeyManager.shared.unregister()
     }
