@@ -133,6 +133,12 @@ class AppState: ObservableObject {
         }
     }
     
+    @Published var whisperTemperature: Double {
+        didSet {
+            UserDefaults.standard.set(whisperTemperature, forKey: "whisper_temperature")
+        }
+    }
+    
     // Auto-update states
     @Published var isUpdateAvailable = false
     @Published var serverLatestVersion = ""
@@ -155,6 +161,11 @@ class AppState: ObservableObject {
         self.selectedTheme = UserDefaults.standard.string(forKey: "selected_theme") ?? "system"
         
         self.customVocabulary = UserDefaults.standard.string(forKey: "custom_vocabulary") ?? ""
+        self.whisperTemperature = UserDefaults.standard.double(forKey: "whisper_temperature")
+        if UserDefaults.standard.object(forKey: "whisper_temperature") == nil {
+            self.whisperTemperature = 0.0
+            UserDefaults.standard.set(0.0, forKey: "whisper_temperature")
+        }
         
         self.maxRecordingDuration = UserDefaults.standard.double(forKey: "max_recording_duration")
         if self.maxRecordingDuration == 0.0 {
@@ -264,14 +275,14 @@ class AppState: ObservableObject {
         
         status = .uploading
         
-        let baseStylePrompt = "Hello! This is a dynamic, high-quality transcription with perfect punctuation: commas, periods, dashes, and question marks. OK? Привет! Это качественная запись с идеальной пунктуацией."
+        let baseStylePrompt = "Hello there! I am dictating a short message to test the speech recognition system. Everything is working perfectly fine, isn't it? А теперь я продолжу говорить по-русски, чтобы показать модели, как легко переключаться между языками на лету — без пауз и сбоев! Это очень удобно, ведь современный мир требует гибкости, скорости и точности. Поехали!"
         var finalPrompt = baseStylePrompt
         let cleanVocab = customVocabulary.trimmingCharacters(in: .whitespacesAndNewlines)
         if !cleanVocab.isEmpty {
             finalPrompt += ", " + cleanVocab
         }
         
-        apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage, prompt: finalPrompt) { [weak self] result in
+        apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage, prompt: finalPrompt, temperature: whisperTemperature) { [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 
@@ -406,6 +417,8 @@ class AppState: ObservableObject {
                 "auto_paste_toggle": "Auto-paste text automatically",
                 "auto_paste_hint": "If enabled, recognized text is automatically pasted into the active app using simulated Cmd+V.",
                 "recording_lang": "Audio Language:",
+                "temp_title": "Model Temperature:",
+                "temp_desc": "Lower temperature (0.0 - 0.2) is more accurate and deterministic. Higher values (0.3 - 0.7) are more creative but increase the risk of hallucinations.",
                 "ui_lang": "UI Language:",
                 "theme_title": "Appearance Theme:",
                 "theme_system": "System",
@@ -474,6 +487,8 @@ class AppState: ObservableObject {
                 "auto_paste_toggle": "Автоматически вставлять текст",
                 "auto_paste_hint": "Если включено, после распознавания текст автоматически вставится в текущее активное приложение с помощью симуляции клавиш Cmd+V.",
                 "recording_lang": "Язык записи:",
+                "temp_title": "Температура модели:",
+                "temp_desc": "Низкая температура (0.0 - 0.2) более точная и стабильная. Высокая (0.3 - 0.7) делает речь более живой, но повышает риск галлюцинаций.",
                 "ui_lang": "Язык интерфейса:",
                 "theme_title": "Тема оформления:",
                 "theme_system": "Системная",
@@ -542,6 +557,8 @@ class AppState: ObservableObject {
                 "auto_paste_toggle": "Автоматично вставлять текст",
                 "auto_paste_hint": "Якщо увімкнено, після розпізнавання текст автоматически вставиться в поточний активний додаток за допомогою симуляції клавіш Cmd+V.",
                 "recording_lang": "Мова запису:",
+                "temp_title": "Температура моделі:",
+                "temp_desc": "Низька температура (0.0 - 0.2) є більш точною та стабільною. Висока (0.3 - 0.7) додає гнучкості, але збільшує ризик галюцинацій.",
                 "ui_lang": "Мова інтерфейсу:",
                 "theme_title": "Тема оформлення:",
                 "theme_system": "Системна",

@@ -19,7 +19,7 @@ class GroqWhisperService {
         }
     }
     
-    func transcribe(fileURL: URL, apiKey: String, language: String, prompt: String, completion: @escaping (Result<String, Error>) -> Void) {
+    func transcribe(fileURL: URL, apiKey: String, language: String, prompt: String, temperature: Double, completion: @escaping (Result<String, Error>) -> Void) {
         guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             completion(.failure(ServiceError.missingAPIKey))
             return
@@ -44,10 +44,10 @@ class GroqWhisperService {
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
         body.append("whisper-large-v3-turbo\r\n".data(using: .utf8)!)
         
-        // Temperature field (set to 0.0 for deterministic decoding and less hallucinations)
+        // Temperature field (dynamic value from settings)
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"temperature\"\r\n\r\n".data(using: .utf8)!)
-        body.append("0.0\r\n".data(using: .utf8)!)
+        body.append("\(String(format: "%.1f", temperature))\r\n".data(using: .utf8)!)
         
         // Prompt field (for punctuation guide and custom vocabulary)
         if !prompt.isEmpty {

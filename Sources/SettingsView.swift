@@ -70,6 +70,29 @@ struct SettingsView: View {
                     }
                     .padding(.vertical, 2)
                     
+                    HStack {
+                        Text(appState.localizedString("temp_title"))
+                            .fontWeight(.medium)
+                        Spacer()
+                        Picker("", selection: $appState.whisperTemperature) {
+                            Text("0.0" + (appState.selectedUILanguage == "ru" ? " (Точная)" : appState.selectedUILanguage == "ua" ? " (Точна)" : " (Deterministic)")).tag(0.0)
+                            Text("0.1").tag(0.1)
+                            Text("0.2").tag(0.2)
+                            Text("0.3").tag(0.3)
+                            Text("0.5").tag(0.5)
+                            Text("0.7" + (appState.selectedUILanguage == "ru" ? " (Креативная)" : appState.selectedUILanguage == "ua" ? " (Креативна)" : " (Creative)")).tag(0.7)
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 280)
+                    }
+                    .padding(.vertical, 2)
+                    
+                    Text(appState.localizedString("temp_desc"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
                     Toggle(appState.localizedString("auto_paste_toggle"), isOn: $appState.autoPasteEnabled)
                         .toggleStyle(.checkbox)
                         .padding(.top, 4)
@@ -211,6 +234,6 @@ struct SettingsView: View {
             }
             .padding(24)
         }
-        .frame(width: 480, height: 580)
+        .frame(width: 480, height: 620)
     }
 }
