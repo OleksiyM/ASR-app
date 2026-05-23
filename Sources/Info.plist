@@ -23,7 +23,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Приложению требуется доступ к микрофону для записи вашего голоса и его распознавания в текст.</string>
+	<string>The app requires microphone access to record your voice and convert it to text.</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 </dict>
