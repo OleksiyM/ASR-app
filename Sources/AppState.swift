@@ -268,7 +268,7 @@ class AppState: ObservableObject {
         var finalPrompt = baseStylePrompt
         let cleanVocab = customVocabulary.trimmingCharacters(in: .whitespacesAndNewlines)
         if !cleanVocab.isEmpty {
-            finalPrompt += " Terms: " + cleanVocab
+            finalPrompt += ", " + cleanVocab
         }
         
         apiService.transcribe(fileURL: fileURL, apiKey: groqApiKey, language: selectedLanguage, prompt: finalPrompt) { [weak self] result in
