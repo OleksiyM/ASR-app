@@ -58,9 +58,30 @@ Designed with modern **macOS LiquidGlass** principles, combining deep translucen
 
 ### 📋 Requirements
 * macOS 14.0 or newer.
-* [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed on your system.
+
+### 💿 Installation (Pre-built Release)
+
+For the ultimate experience, you don't need to compile the code yourself. Simply download a pre-built premium DMG installer from our [GitHub Releases](https://github.com/OleksiyM/ASR-app/releases):
+
+1. **Download the DMG** corresponding to your architecture:
+   * `ASR-App-AppleSilicon.dmg` (for M1/M2/M3/M4 Apple Silicon Macs)
+   * `ASR-App-Intel.dmg` (for older Intel x86_64 Macs)
+2. **Mount the DMG** and drag `ASRApp.app` into your **`Applications`** folder.
+3. **Bypass Gatekeeper Warning** (required due to Ad-Hoc signing):
+   Since the app is ad-hoc signed without a paid Apple Developer Certificate, macOS will prevent it from running initially. You can resolve this instantly using one of two methods:
+   * **Method 1: Terminal (Fastest ⚡)**
+     Open Terminal and run the following command to strip the quarantine attribute:
+     ```bash
+     xattr -d com.apple.quarantine /Applications/ASRApp.app
+     ```
+   * **Method 2: System Settings**
+     Open **System Settings ➔ Privacy & Security**, scroll down to the **Security** section, and click **«Open Anyway» (Подтвердить вход)** for ASRApp.
+
+---
 
 ### ⚙️ How to Build and Run Locally
+
+* [XcodeGen](https://github.com/yonaskolb/XcodeGen) installed on your system.
 
 1. Install **XcodeGen** using Homebrew:
    ```bash
