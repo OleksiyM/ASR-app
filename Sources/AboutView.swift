@@ -57,6 +57,36 @@ struct AboutView: View {
                         .padding(.horizontal, 8)
                         .background(Color.secondary.opacity(0.1))
                         .cornerRadius(6)
+                    
+                    HStack(spacing: 6) {
+                        Button {
+                            appState.checkForUpdates(explicit: true)
+                        } label: {
+                            HStack(spacing: 4) {
+                                if appState.isCheckingForUpdates {
+                                    ProgressView()
+                                        .scaleEffect(0.5)
+                                        .frame(width: 10, height: 10)
+                                } else {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                        .font(.system(size: 9))
+                                }
+                                Text(appState.localizedString("check_updates"))
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                            .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(appState.isCheckingForUpdates)
+                        
+                        if let msg = appState.updateCheckStatusMessage {
+                            Text("•  \(msg)")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(appState.isUpdateAvailable ? .orange : .secondary)
+                                .transition(.opacity)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
                 
                 // Description

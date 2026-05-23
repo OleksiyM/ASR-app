@@ -434,7 +434,7 @@
                 
                 <div class="alt-downloads">
                     <span style="color: rgba(255,255,255,0.4)">Alternative versions:</span>
-                    <a href="#" id="linkAppleSilicon">Apple Silicon (M1/M2/M3/M4)</a>
+                    <a href="#" id="linkAppleSilicon">Apple Silicon (M-series)</a>
                     <a href="#" id="linkIntel">Intel Core Processor</a>
                 </div>
             </div>
@@ -539,7 +539,7 @@
 
         if (arch === 'arm64') {
             mainBtn.href = dlUrls.arm64;
-            mainBtn.querySelector('span').innerText = "Download for Mac (M1/M2/M3/M4)";
+            mainBtn.querySelector('span').innerText = "Download for Mac (Apple Silicon)";
             badgeArch.innerText = "Apple Silicon";
             badgeArch.style.background = "rgba(139, 92, 246, 0.4)";
         } else if (arch === 'x86_64') {
