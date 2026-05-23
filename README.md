@@ -11,13 +11,22 @@ Designed with modern **macOS LiquidGlass** principles, combining deep translucen
 - **🎙️ Blazing-Fast Transcription (Whisper Turbo)**:
   Audio is sent directly to the Groq Whisper Large V3 Turbo API, ensuring near-instant transcription (under one second) and maximum accuracy.
   
+- **✍️ Whisper Prompting & Punctuation Guide**:
+  Uses a hidden high-quality style template to guide the model to automatically format the transcribed text with perfect grammar, capitals, and punctuation (commas, periods, dashes, and question marks).
+
+- **📚 Custom Vocabulary Support**:
+  Add custom terms, names, or technical slang separated by commas directly in the Settings panel (up to 30-50 words). The application seamlessly appends these terms to the transcription prompt, ensuring 100% recognition accuracy.
+
 - **📋 Smart Auto-Paste**:
-  Once transcription is complete, the text is copied to your clipboard and immediately pasted into your active application (web browser, IDE, chat app) using an simulated `Cmd+V` keystroke.
+  Once transcription is complete, the text is copied to your clipboard and immediately pasted into your active application (web browser, IDE, chat app) using a simulated `Cmd+V` keystroke.
 
 - **🎨 Premium LiquidGlass UI**:
-  - A beautiful, adaptive translucent Menu Bar Popover.
+  - A beautiful, adaptive translucent Menu Bar Popover that fits perfectly on your screen.
   - An interactive animated real-time volume indicator (Neon Wave) with glowing reflections.
   - A gorgeous borderless **«About» (About ASR-app)** window featuring dynamic animated liquid glass gradient blobs.
+
+- **⏱️ Auto-Stop Timer & Warm Warning**:
+  Set your preferred maximum recording duration (1, 2, 3, 5, or 10 minutes) in Settings. When recording gets within 30 seconds of the auto-stop limit, the popover transitions into a warm neon-orange color scheme with an active countdown timer to prevent text truncation.
 
 - **🌐 Complete Multilingual Support (En, Ru, Ua)**:
   - Matches your macOS system language by default.
@@ -92,12 +101,13 @@ To enable speech-to-text recognition, you need a free API key from Groq:
 
 ## ⚙️ Automated CI/CD (GitHub Actions)
 
-This project features a fully configured DevOps pipeline:
-* When you push a Git version tag starting with `v` (e.g., `v1.1.0`), the GitHub Actions release workflow is triggered.
-* On a high-performance cloud runner (**`macos-14`** Apple Silicon), the pipeline installs XcodeGen, compiles the release build, and packages the binary into an ad-hoc `.app` folder.
-* The application folder is compressed into a `ASRApp.zip` archive.
-* Detailed release notes (Release Notes / Changelog) are auto-generated based on commit logs.
-* A GitHub Release is created, and the `ASRApp.zip` is automatically uploaded as a release asset.
+This project features a fully automated DevOps pipeline:
+* When you push a Git version tag starting with `v` (e.g., `v1.2.3`), the GitHub Actions release workflow is triggered.
+* On a high-performance cloud runner (**`macos-15`** with Xcode 16+), the pipeline installs XcodeGen and compiles the application.
+* **Matrix Architecture**: Builds independent, native binaries for **Apple Silicon (arm64)** and **Intel (x86_64)** to keep the application lightweight without code bloat.
+* **Ad-Hoc Signing**: Automatically applies ad-hoc codesigning (`codesign --force --deep --sign -`) to allow seamless launching by bypassing macOS Gatekeeper blockades.
+* **Premium DMG Packaging**: Instead of basic ZIP archives, the pipeline uses `create-dmg` to package the `.app` into a gorgeous, customized DMG installer with a custom layout and drag-and-drop support.
+* Detailed release notes (Release Notes / Changelog) are auto-generated based on commit logs, and assets are uploaded directly to the GitHub Release.
 
 ---
 
