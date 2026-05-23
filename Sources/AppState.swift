@@ -133,6 +133,13 @@ class AppState: ObservableObject {
         }
     }
     
+    // Auto-update states
+    @Published var isUpdateAvailable = false
+    @Published var serverLatestVersion = ""
+    @Published var updateURL = ""
+    @Published var isCheckingForUpdates = false
+    @Published var updateCheckStatusMessage: String? = nil
+    
     private let recorder = AudioRecorder()
     private let apiService = GroqWhisperService()
     private var timer: Timer?
@@ -165,6 +172,11 @@ class AppState: ObservableObject {
         // Apply appearance asynchronously after window initialization
         DispatchQueue.main.async {
             self.updateApplicationAppearance()
+        }
+        
+        // Trigger background update check
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            self?.checkForUpdates(explicit: false)
         }
     }
     
@@ -426,7 +438,13 @@ class AppState: ObservableObject {
                 "duration_10min": "10 minutes",
                 "warning_auto_stop": "Auto-stop in %d sec",
                 "custom_vocab_title": "Custom Vocabulary (Terms & Names):",
-                "custom_vocab_hint": "Enter custom terms or names separated by commas (up to 30-50 words). Model will use them to recognize complex words."
+                "custom_vocab_hint": "Enter custom terms or names separated by commas (up to 30-50 words). Model will use them to recognize complex words.",
+                "update_available": "Update Available!",
+                "update_btn": "Update",
+                "checking_updates": "Checking for updates...",
+                "up_to_date": "You're up to date!",
+                "update_failed": "Update check failed",
+                "check_updates": "Check for Updates"
             ],
             "ru": [
                 "ready_to_record": "Нажмите для записи",
@@ -488,7 +506,13 @@ class AppState: ObservableObject {
                 "duration_10min": "10 минут",
                 "warning_auto_stop": "Автостоп через %d сек",
                 "custom_vocab_title": "Пользовательский словарь (термины и имена):",
-                "custom_vocab_hint": "Введите через запятую специфические термины или имена (не более 30-50 слов). Модель будет использовать их для распознавания сложных слов."
+                "custom_vocab_hint": "Введите через запятую специфические термины или имена (не более 30-50 слов). Модель будет использовать их для распознавания сложных слов.",
+                "update_available": "Доступно обновление!",
+                "update_btn": "Обновить",
+                "checking_updates": "Проверка обновлений...",
+                "up_to_date": "У вас актуальная версия!",
+                "update_failed": "Ошибка проверки обновлений",
+                "check_updates": "Проверить обновления"
             ],
             "ua": [
                 "ready_to_record": "Натисніть для запису",
@@ -550,12 +574,110 @@ class AppState: ObservableObject {
                 "duration_10min": "10 хвилин",
                 "warning_auto_stop": "Автостоп через %d сек",
                 "custom_vocab_title": "Словник користувача (терміни та імена):",
-                "custom_vocab_hint": "Введіть через кому специфічні терміни або імена (не більше 30-50 слів). Модель використовуватиме їх для розпізнавання складних слів."
+                "custom_vocab_hint": "Введіть через кому специфічні терміни або імена (не більше 30-50 слів). Модель використовуватиме їх для розпізнавання складних слів.",
+                "update_available": "Доступне оновлення!",
+                "update_btn": "Оновити",
+                "checking_updates": "Перевірка оновлень...",
+                "up_to_date": "У вас остання версія!",
+                "update_failed": "Помилка перевірки оновлень",
+                "check_updates": "Перевірити оновлення"
             ]
         ]
         
         let dict = translations[activeLang] ?? translations["en"]!
         return dict[key] ?? key
+    }
+    
+    // Background and manual update checkers
+    func checkForUpdates(explicit: Bool = false) {
+        guard !isCheckingForUpdates else { return }
+        
+        isCheckingForUpdates = true
+        if explicit {
+            updateCheckStatusMessage = localizedString("checking_updates")
+        }
+        
+        guard let url = URL(string: "https://oleksiym.github.io/ASR-app/version.json") else {
+            isCheckingForUpdates = false
+            if explicit {
+                updateCheckStatusMessage = localizedString("update_failed")
+            }
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.isCheckingForUpdates = false
+                
+                if let error = error {
+                    print("Update check error: \(error.localizedDescription)")
+                    if explicit {
+                        self.updateCheckStatusMessage = self.localizedString("update_failed")
+                    }
+                    return
+                }
+                
+                guard let data = data else {
+                    if explicit {
+                        self.updateCheckStatusMessage = self.localizedString("update_failed")
+                    }
+                    return
+                }
+                
+                do {
+                    struct VersionConfig: Codable {
+                        let latestVersion: String
+                        let urls: [String: String]
+                    }
+                    
+                    let config = try JSONDecoder().decode(VersionConfig.self, from: data)
+                    let localVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.2.3"
+                    
+                    if self.isVersion(config.latestVersion, newerThan: localVersion) {
+                        self.isUpdateAvailable = true
+                        self.serverLatestVersion = config.latestVersion
+                        
+                        let arch: String
+                        #if arch(arm64)
+                        arch = "arm64"
+                        #else
+                        arch = "x86_64"
+                        #endif
+                        
+                        self.updateURL = config.urls[arch] ?? "https://github.com/OleksiyM/ASR-app/releases/latest"
+                        
+                        if explicit {
+                            self.updateCheckStatusMessage = String(format: self.localizedString("update_available") + " \(config.latestVersion)")
+                        }
+                    } else {
+                        self.isUpdateAvailable = false
+                        if explicit {
+                            self.updateCheckStatusMessage = self.localizedString("up_to_date")
+                        }
+                    }
+                } catch {
+                    print("Failed to decode version configuration: \(error)")
+                    if explicit {
+                        self.updateCheckStatusMessage = self.localizedString("update_failed")
+                    }
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    private func isVersion(_ serverVersion: String, newerThan localVersion: String) -> Bool {
+        let serverComponents = serverVersion.split(separator: ".").compactMap { Int($0) }
+        let localComponents = localVersion.split(separator: ".").compactMap { Int($0) }
+        
+        for i in 0..<max(serverComponents.count, localComponents.count) {
+            let serverValue = i < serverComponents.count ? serverComponents[i] : 0
+            let localValue = i < localComponents.count ? localComponents[i] : 0
+            if serverValue > localValue { return true }
+            if serverValue < localValue { return false }
+        }
+        return false
     }
     
     deinit {

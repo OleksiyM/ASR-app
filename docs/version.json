@@ -1,0 +1,14 @@
+{
+  "latestVersion": "1.2.3",
+  "build": 1,
+  "requiredOS": "14.0",
+  "urls": {
+    "arm64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.3/ASR-App-AppleSilicon.dmg",
+    "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.3/ASR-App-Intel.dmg"
+  },
+  "releaseNotes": {
+    "en": "Sleek UI polish: auto-wrapping in settings, optimized popover warning layout, and code cleanup.",
+    "ru": "Эстетическое обновление: автоперенос подсказок в настройках, компактный таймер предупреждения и чистка кода.",
+    "uk": "Естетичне оновлення: автоперенесення підказок в налаштуваннях, компактний таймер попередження та чистка коду."
+  }
+}

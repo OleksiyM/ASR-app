@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASR-app — Instant Speech to Text for macOS</title>
+    <meta name="description" content="Lightweight, blazing-fast, and aesthetically stunning native macOS menu bar app for instant speech-to-text input across any application using Whisper Large V3 Turbo.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #08060f;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-orange: #f97316;
+            --accent-blue: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Animated Liquid Glass Background Blobs */
+        .bg-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: var(--accent-purple);
+            animation-duration: 25s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: var(--accent-blue);
+            animation-duration: 30s;
+        }
+
+        .blob-3 {
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: var(--accent-pink);
+            animation-duration: 20s;
+            opacity: 0.08;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 30px) scale(1.1); }
+            100% { transform: translate(-30px, -50px) scale(0.9); }
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
+
+        /* Header / Logo */
+        header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .logo-box {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1.5px solid var(--card-border);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-box svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: url(#logoGradient);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            max-width: 720px;
+            margin-bottom: 60px;
+            animation: fadeIn 1s ease-out 0.2s both;
+        }
+
+        .hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 54px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 40%, #ec4899 70%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(24px) saturate(180%);
+            border-radius: 24px;
+            padding: 35px;
+            width: 100%;
+            max-width: 680px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease-out 0.4s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+
+        /* Download Button Area */
+        .download-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-download {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 50%, var(--accent-orange) 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 16px 36px;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.35);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn-download:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .arch-badge {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .alt-downloads {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .alt-downloads a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+            padding-bottom: 2px;
+        }
+
+        .alt-downloads a:hover {
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        /* Info Badge */
+        .version-badge {
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: var(--accent-orange);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        /* Features List */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 12px;
+        }
+
+        .feature-icon {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Installation Note block */
+        .note-block {
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-orange);
+            padding: 15px;
+            border-radius: 0 12px 12px 0;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .note-block p {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .note-block code {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #ffedd5;
+            display: block;
+            margin-top: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            user-select: all;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        footer p {
+            margin-bottom: 6px;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #ffffff;
+        }
+
+        /* Fade-in Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 38px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .glass-card {
+                padding: 25px 20px;
+            }
+            .alt-downloads {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Animating Blobs -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-box">
+                <svg viewBox="0 0 24 24">
+                    <defs>
+                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--accent-pink)" />
+                            <stop offset="50%" stop-color="var(--accent-purple)" />
+                            <stop offset="100%" stop-color="var(--accent-blue)" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Waveform Graphic -->
+                    <path d="M4 12h1M7 12h1M10 6v12M13 3v18M16 8v8M19 12h1M22 12h1" />
+                </svg>
+            </div>
+            <div class="logo-text">ASR-app</div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Glow Your Voice directly into Any App</h1>
+            <p>A lightweight, system-wide voice-to-text assistant for macOS. Press a hotkey, dictate in any language, and watch the text type itself instantly with perfect grammar & punctuation.</p>
+        </section>
+
+        <!-- Main Interactive Download Card -->
+        <div class="glass-card">
+            <span class="version-badge" id="versionBadge">v1.2.3 • STABLE</span>
+            
+            <div class="download-box">
+                <a href="#" class="btn-download" id="mainDownloadBtn">
+                    <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24">
+                        <path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                    </svg>
+                    <span>Download for Mac</span>
+                    <span class="arch-badge" id="btnArch">Auto</span>
+                </a>
+                
+                <div class="alt-downloads">
+                    <span style="color: rgba(255,255,255,0.4)">Alternative versions:</span>
+                    <a href="#" id="linkAppleSilicon">Apple Silicon (M1/M2/M3/M4)</a>
+                    <a href="#" id="linkIntel">Intel Core Processor</a>
+                </div>
+            </div>
+
+            <hr style="border: 0; height: 1px; background: var(--card-border); margin: 25px 0;">
+
+            <!-- Features Grid -->
+            <div class="features-grid">
+                <div class="feature-item">
+                    <span class="feature-icon">🎙️</span>
+                    <div>
+                        <p class="feature-title">Whisper Large V3 Turbo</p>
+                        <p class="feature-desc">Transcribes audio in under a second with blazing speed and unmatched accuracy.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✍️</span>
+                    <div>
+                        <p class="feature-title">System-wide Autopaste</p>
+                        <p class="feature-desc">Copies recognized text to the clipboard and types it automatically via Cmd+V.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📚</span>
+                    <div>
+                        <p class="feature-title">Custom Vocabulary</p>
+                        <p class="feature-desc">Enter technical jargon, slang, or names to guarantee 100% correct spelling.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🌗</span>
+                    <div>
+                        <p class="feature-title">LiquidGlass Aesthetics</p>
+                        <p class="feature-desc">Stunning glassmorphism popovers and dynamic system/dark/light themes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Bypass Info -->
+            <div class="note-block">
+                <p><strong>💡 macOS Gatekeeper Quick Bypass:</strong></p>
+                <p>Since the application is signed ad-hoc, run this command in your Terminal after installation to easily open it:</p>
+                <code onclick="navigator.clipboard.writeText('xattr -d com.apple.quarantine /Applications/ASRApp.app'); alert('Command copied to clipboard!');">xattr -d com.apple.quarantine /Applications/ASRApp.app</code>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Created by Eva for Alex with love & tea 🫂🍵✨</p>
+            <p><a href="https://github.com/OleksiyM/ASR-app" target="_blank">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // High-Fidelity Client-side CPU Architecture Detection
+        function detectMacArchitecture() {
+            const platform = navigator.platform || '';
+            const ua = navigator.userAgent || '';
+            const isMac = platform.toUpperCase().indexOf('MAC') >= 0 || ua.toUpperCase().indexOf('MACINTOSH') >= 0;
+            
+            if (!isMac) return 'unknown';
+            
+            // Check WebGL renderer for GPU brand (Apple M-series GPU vs. Intel/AMD)
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_VENDOR_SGIS) || '';
+                        const rendererName = gl.getParameter(debugInfo.UNMASKED_RENDERER_RENDERER_SGIS) || '';
+                        if (renderer.indexOf('Apple') >= 0 || rendererName.indexOf('Apple') >= 0 || rendererName.indexOf('M1') >= 0 || rendererName.indexOf('M2') >= 0 || rendererName.indexOf('M3') >= 0 || rendererName.indexOf('M4') >= 0) {
+                            return 'arm64';
+                        }
+                    }
+                }
+            } catch (e) {}
+            
+            // Fallback based on typical cores count (Apple Silicon CPUs have 8+ logical threads)
+            if (navigator.hardwareConcurrency >= 8) {
+                return 'arm64';
+            }
+            
+            return 'x86_64';
+        }
+
+        // Apply detected download links dynamically from version.json configurations
+        const version = "1.2.3";
+        const baseRepoUrl = "https://github.com/OleksiyM/ASR-app/releases/download/v" + version + "/";
+        const dlUrls = {
+            "arm64": baseRepoUrl + "ASR-App-AppleSilicon.dmg",
+            "x86_64": baseRepoUrl + "ASR-App-Intel.dmg"
+        };
+
+        const arch = detectMacArchitecture();
+        const mainBtn = document.getElementById("mainDownloadBtn");
+        const badgeArch = document.getElementById("btnArch");
+
+        // Set alternative links
+        document.getElementById("linkAppleSilicon").href = dlUrls.arm64;
+        document.getElementById("linkIntel").href = dlUrls.x86_64;
+
+        if (arch === 'arm64') {
+            mainBtn.href = dlUrls.arm64;
+            mainBtn.querySelector('span').innerText = "Download for Mac (M1/M2/M3/M4)";
+            badgeArch.innerText = "Apple Silicon";
+            badgeArch.style.background = "rgba(139, 92, 246, 0.4)";
+        } else if (arch === 'x86_64') {
+            mainBtn.href = dlUrls.x86_64;
+            mainBtn.querySelector('span').innerText = "Download for Mac (Intel Core)";
+            badgeArch.innerText = "Intel Core";
+            badgeArch.style.background = "rgba(59, 130, 246, 0.4)";
+        } else {
+            // Non-mac or fully generic fallback (offer Apple Silicon as default recommended, or direct to release page)
+            mainBtn.href = "https://github.com/OleksiyM/ASR-app/releases/latest";
+            mainBtn.querySelector('span').innerText = "Download ASR-app";
+            badgeArch.innerText = "macOS";
+            badgeArch.style.background = "rgba(236, 72, 153, 0.4)";
+        }
+
+        // Fetch dynamic update badge info from local version.json to ensure correctness
+        fetch('version.json')
+            .then(res => res.json())
+            .then(data => {
+                const latest = data.latestVersion;
+                document.getElementById("versionBadge").innerText = "v" + latest + " • STABLE";
+                
+                // Update URLs based on version.json values dynamically
+                const armLink = data.urls.arm64;
+                const intelLink = data.urls.x86_64;
+                
+                document.getElementById("linkAppleSilicon").href = armLink;
+                document.getElementById("linkIntel").href = intelLink;
+                
+                if (arch === 'arm64') {
+                    mainBtn.href = armLink;
+                } else if (arch === 'x86_64') {
+                    mainBtn.href = intelLink;
+                }
+            })
+            .catch(err => console.error("Error fetching version metadata:", err));
+    </script>
+</body>
+</html>

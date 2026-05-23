@@ -85,6 +85,47 @@ struct MainPopoverView: View {
                 }
                 .padding(.horizontal, 4)
                 
+                // Neon-orange Update Available Banner
+                if appState.isUpdateAvailable {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.orange)
+                        
+                        Text("\(appState.localizedString("update_available")) (\(appState.serverLatestVersion))")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.orange)
+                        
+                        Spacer()
+                        
+                        Button {
+                            if let url = URL(string: appState.updateURL) {
+                                NSWorkspace.shared.open(url)
+                            }
+                        } label: {
+                            Text(appState.localizedString("update_btn"))
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.black)
+                                .padding(.vertical, 2)
+                                .padding(.horizontal, 8)
+                                .background(Color.orange)
+                                .cornerRadius(6)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(Color.orange.opacity(0.12))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 4)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: appState.isUpdateAvailable)
+                }
+                
                 // Central Workspace Area
                 VStack(spacing: 12) {
                     switch appState.status {

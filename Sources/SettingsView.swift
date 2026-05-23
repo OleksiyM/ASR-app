@@ -176,6 +176,37 @@ struct SettingsView: View {
                         .frame(width: 280)
                     }
                     .padding(.vertical, 2)
+                    
+                    Divider()
+                        .padding(.vertical, 4)
+                    
+                    HStack {
+                        Button {
+                            appState.checkForUpdates(explicit: true)
+                        } label: {
+                            HStack(spacing: 6) {
+                                if appState.isCheckingForUpdates {
+                                    ProgressView()
+                                        .scaleEffect(0.6)
+                                        .frame(width: 12, height: 12)
+                                } else {
+                                    Image(systemName: "arrow.triangle.2.circlepath")
+                                }
+                                Text(appState.localizedString("check_updates"))
+                            }
+                        }
+                        .disabled(appState.isCheckingForUpdates)
+                        
+                        Spacer()
+                        
+                        if let msg = appState.updateCheckStatusMessage {
+                            Text(msg)
+                                .font(.caption)
+                                .foregroundColor(appState.isUpdateAvailable ? .orange : .secondary)
+                                .transition(.opacity)
+                        }
+                    }
+                    .padding(.vertical, 2)
                 }
             }
             .padding()
