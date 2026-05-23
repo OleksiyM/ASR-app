@@ -53,6 +53,22 @@ struct SettingsView: View {
                     }
                     .padding(.vertical, 2)
                     
+                    HStack {
+                        Text(appState.localizedString("max_duration_lbl"))
+                            .fontWeight(.medium)
+                        Spacer()
+                        Picker("", selection: $appState.maxRecordingDuration) {
+                            Text(appState.localizedString("duration_1min")).tag(60.0)
+                            Text(appState.localizedString("duration_2min")).tag(120.0)
+                            Text(appState.localizedString("duration_3min")).tag(180.0)
+                            Text(appState.localizedString("duration_5min")).tag(300.0)
+                            Text(appState.localizedString("duration_10min")).tag(600.0)
+                        }
+                        .pickerStyle(.menu)
+                        .frame(width: 280)
+                    }
+                    .padding(.vertical, 2)
+                    
                     Toggle(appState.localizedString("auto_paste_toggle"), isOn: $appState.autoPasteEnabled)
                         .toggleStyle(.checkbox)
                         .padding(.top, 4)

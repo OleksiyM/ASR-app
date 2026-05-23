@@ -121,6 +121,12 @@ class AppState: ObservableObject {
         }
     }
     
+    @Published var maxRecordingDuration: Double {
+        didSet {
+            UserDefaults.standard.set(maxRecordingDuration, forKey: "max_recording_duration")
+        }
+    }
+    
     private let recorder = AudioRecorder()
     private let apiService = GroqWhisperService()
     private var timer: Timer?
@@ -133,6 +139,12 @@ class AppState: ObservableObject {
         self.selectedHotkey = UserDefaults.standard.string(forKey: "selected_hotkey") ?? HotkeyOption.optionSpace.rawValue
         self.selectedUILanguage = UserDefaults.standard.string(forKey: "selected_ui_language") ?? "system"
         self.selectedTheme = UserDefaults.standard.string(forKey: "selected_theme") ?? "system"
+        
+        self.maxRecordingDuration = UserDefaults.standard.double(forKey: "max_recording_duration")
+        if self.maxRecordingDuration == 0.0 {
+            self.maxRecordingDuration = 180.0
+            UserDefaults.standard.set(180.0, forKey: "max_recording_duration")
+        }
         
         // Register default state for auto-paste (default to true on first launch)
         if UserDefaults.standard.object(forKey: "auto_paste_enabled") == nil {
@@ -203,8 +215,8 @@ class AppState: ObservableObject {
                 self.recordingDuration += 0.05
                 self.audioLevel = self.recorder.getAudioLevel()
                 
-                // Safety limit: 3 minutes max recording
-                if self.recordingDuration >= 180.0 {
+                // Safety limit from user settings
+                if self.recordingDuration >= self.maxRecordingDuration {
                     self.stopRecordingAndTranscribe()
                 }
             }
@@ -390,7 +402,13 @@ class AppState: ObservableObject {
                 "error_missing_api_key": "Groq API Key is not configured",
                 "error_bad_response": "Groq server error: %d",
                 "error_decoding_error": "Failed to parse server response",
-                "error_no_data": "Server returned empty response"
+                "error_no_data": "Server returned empty response",
+                "max_duration_lbl": "Max duration:",
+                "duration_1min": "1 minute",
+                "duration_2min": "2 minutes",
+                "duration_3min": "3 minutes (Default)",
+                "duration_5min": "5 minutes",
+                "duration_10min": "10 minutes"
             ],
             "ru": [
                 "ready_to_record": "Нажмите для записи",
@@ -443,7 +461,13 @@ class AppState: ObservableObject {
                 "error_missing_api_key": "API-ключ Groq не настроен",
                 "error_bad_response": "Ошибка сервера Groq: %d",
                 "error_decoding_error": "Не удалось распознать ответ сервера",
-                "error_no_data": "Сервер вернул пустой ответ"
+                "error_no_data": "Сервер вернул пустой ответ",
+                "max_duration_lbl": "Макс. время записи:",
+                "duration_1min": "1 минута",
+                "duration_2min": "2 минуты",
+                "duration_3min": "3 минуты (По умолчанию)",
+                "duration_5min": "5 минут",
+                "duration_10min": "10 минут"
             ],
             "ua": [
                 "ready_to_record": "Натисніть для запису",
@@ -496,7 +520,13 @@ class AppState: ObservableObject {
                 "error_missing_api_key": "API-ключ Groq не налаштований",
                 "error_bad_response": "Помилка сервера Groq: %d",
                 "error_decoding_error": "Не вдалося розпізнати відповідь сервера",
-                "error_no_data": "Сервер повернув порожню відповідь"
+                "error_no_data": "Сервер повернув порожню відповідь",
+                "max_duration_lbl": "Макс. час запису:",
+                "duration_1min": "1 хвилина",
+                "duration_2min": "2 хвилини",
+                "duration_3min": "3 хвилини (Типово)",
+                "duration_5min": "5 хвилин",
+                "duration_10min": "10 хвилин"
             ]
         ]
         
