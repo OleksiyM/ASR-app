@@ -184,16 +184,18 @@ struct MainPopoverView: View {
     }
     
     private var recordingStateView: some View {
-        VStack(spacing: 12) {
+        let isWarning = appState.maxRecordingDuration - appState.recordingDuration <= 30.0
+        
+        return VStack(spacing: 12) {
             Spacer()
             
             // Interactive 9-band audio visualizer
             WaveformView(level: appState.audioLevel)
             
             HStack(spacing: 8) {
-                // Pulsing red indicator
+                // Pulsing red/orange indicator
                 Circle()
-                    .fill(Color.pink)
+                    .fill(isWarning ? Color.orange : Color.pink)
                     .frame(width: 8, height: 8)
                     .opacity(micPulse ? 0.3 : 1.0)
                     .onAppear {
@@ -204,7 +206,18 @@ struct MainPopoverView: View {
                 
                 Text(formatTime(appState.recordingDuration))
                     .font(.system(size: 16, weight: .bold, design: .monospaced))
-                    .foregroundColor(.primary)
+                    .foregroundColor(isWarning ? .orange : .primary)
+            }
+            
+            if isWarning {
+                let secondsLeft = Int(Darwin.round(appState.maxRecordingDuration - appState.recordingDuration))
+                if secondsLeft > 0 {
+                    Text(String(format: appState.localizedString("warning_auto_stop"), secondsLeft))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.orange)
+                        .padding(.vertical, -4)
+                        .transition(.opacity)
+                }
             }
             
             Button {
@@ -212,16 +225,16 @@ struct MainPopoverView: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(Color.pink.opacity(0.15))
+                        .fill(isWarning ? Color.orange.opacity(0.15) : Color.pink.opacity(0.15))
                         .frame(width: 48, height: 48)
                         .overlay(
                             Circle()
-                                .stroke(Color.pink.opacity(0.8), lineWidth: 2)
+                                .stroke(isWarning ? Color.orange.opacity(0.8) : Color.pink.opacity(0.8), lineWidth: 2)
                         )
-                        .shadow(color: .pink.opacity(0.4), radius: 8)
+                        .shadow(color: isWarning ? .orange.opacity(0.4) : .pink.opacity(0.4), radius: 8)
                     
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.pink)
+                        .fill(isWarning ? Color.orange : Color.pink)
                         .frame(width: 14, height: 14)
                 }
             }

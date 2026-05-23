@@ -408,7 +408,8 @@ class AppState: ObservableObject {
                 "duration_2min": "2 minutes",
                 "duration_3min": "3 minutes (Default)",
                 "duration_5min": "5 minutes",
-                "duration_10min": "10 minutes"
+                "duration_10min": "10 minutes",
+                "warning_auto_stop": "Auto-stop in %d sec"
             ],
             "ru": [
                 "ready_to_record": "Нажмите для записи",
@@ -467,7 +468,8 @@ class AppState: ObservableObject {
                 "duration_2min": "2 минуты",
                 "duration_3min": "3 минуты (По умолчанию)",
                 "duration_5min": "5 минут",
-                "duration_10min": "10 минут"
+                "duration_10min": "10 минут",
+                "warning_auto_stop": "Автостоп через %d сек"
             ],
             "ua": [
                 "ready_to_record": "Натисніть для запису",
@@ -526,7 +528,8 @@ class AppState: ObservableObject {
                 "duration_2min": "2 хвилини",
                 "duration_3min": "3 хвилини (Типово)",
                 "duration_5min": "5 хвилин",
-                "duration_10min": "10 хвилин"
+                "duration_10min": "10 хвилин",
+                "warning_auto_stop": "Автостоп через %d сек"
             ]
         ]
         
