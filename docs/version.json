@@ -1,14 +1,14 @@
 {
-  "latestVersion": "1.2.3",
-  "build": 1,
+  "latestVersion": "1.2.4",
+  "build": 2,
   "requiredOS": "14.0",
   "urls": {
-    "arm64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.3/ASR-App-AppleSilicon.dmg",
-    "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.3/ASR-App-Intel.dmg"
+    "arm64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.4/ASR-App-AppleSilicon.dmg",
+    "x86_64": "https://github.com/OleksiyM/ASR-app/releases/download/v1.2.4/ASR-App-Intel.dmg"
   },
   "releaseNotes": {
-    "en": "Sleek UI polish: auto-wrapping in settings, optimized popover warning layout, and code cleanup.",
-    "ru": "Эстетическое обновление: автоперенос подсказок в настройках, компактный таймер предупреждения и чистка кода.",
-    "uk": "Естетичне оновлення: автоперенесення підказок в налаштуваннях, компактний таймер попередження та чистка коду."
+    "en": "Integrated background auto-update engine and beautifully designed LiquidGlass landing page on GitHub Pages.",
+    "ru": "Внедрена автоматическая фоновая проверка обновлений и стильный LiquidGlass лендинг на GitHub Pages.",
+    "uk": "Впроваджено автоматичну фонову перевірку оновлень та стильний LiquidGlass лендінг на GitHub Pages."
   }
 }
