@@ -65,10 +65,9 @@ jobs:
           mkdir -p dmg_temp
           cp -R ASRApp.xcarchive/Products/Applications/ASRApp.app dmg_temp/
           
-          # 3. Собираем премиальный DMG с кастомным фоном и разметкой Finder
+          # 3. Собираем премиальный DMG с разметкой Finder
           create-dmg \
             --volname "ASRApp" \
-            --background "Sources/dmg_background.png" \
             --window-size 540 360 \
             --icon-size 96 \
             --icon "ASRApp.app" 130 180 \
